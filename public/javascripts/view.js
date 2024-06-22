@@ -16,7 +16,7 @@ const onloadFunc = () => {
         const template = document.querySelector('#comment-template');
         for(var i = res.comments.length - 1; i >= 0; i--){
             var node = document.importNode(template.content, true);
-            node.querySelector('.content').textContent = res.comments[i].content;
+            node.querySelector('#content-data').value = res.comments[i].content;
             node.querySelector('.author').textContent = res.comments[i].author.name;
             node.querySelector('.createAt').textContent = res.comments[i].createAt;
             node.querySelector('.createAt').textContent = res.comments[i].createAt;
@@ -95,12 +95,13 @@ const writeComment = () => {
     });
 }
 
-const deleteComment = () => {
+const deleteComment = (e) => {
     const hrefurl = window.location.href;
     const lastIndexOf__id = hrefurl.lastIndexOf('/');
     const __id = hrefurl.substring(lastIndexOf__id+1,hrefurl.length);
-    const comment_id = document.querySelector('.comment_id').innerText;
-    
+    // console.log(e.parentElement.previousElementSibling.previousElementSibling.innerText)
+    const comment_id = e.parentElement.previousElementSibling.previousElementSibling.innerText;
+
     fetch(`/posts/${__id}/comments?comment_id=${comment_id}`,{
         method: "delete",
         // post 로 req.body 보낼 시 header 작성하기
@@ -114,7 +115,9 @@ const deleteComment = () => {
         } else if(res.result === "fail"){
             alert('로그인이 필요한 서비스입니다.');
             window.location.href = `/posts/${__id}`;
-        } 
+        } else if(res.result === "notok") {
+            alert('삭제가 불가합니다. 사유 : 댓글 작성자 아님');
+        }
         else {
             alert('Session user can\'t find in UserDB');
             window.location.href = `/posts/${__id}`;
@@ -122,7 +125,54 @@ const deleteComment = () => {
     })
     .catch(err => {
         console.log(err);
-        alert('댓글 등록 실패 사유: 알 수 없음');
+        alert('댓글 삭제 실패 사유: 알 수 없음');
+    });
+}
+
+const updateCommentEdit = (e) => {
+    e.style.display = "none";
+    e.nextElementSibling.style.display = "block";
+    e.parentElement.previousElementSibling.previousElementSibling.previousElementSibling.previousElementSibling.children[0].readOnly = false;
+}
+
+
+const updateComment = (e) => {
+    const hrefurl = window.location.href;
+    const lastIndexOf__id = hrefurl.lastIndexOf('/');
+    const __id = hrefurl.substring(lastIndexOf__id+1,hrefurl.length);
+    const comment_id = e.parentElement.previousElementSibling.innerText;
+    const content = e.parentElement.previousElementSibling.previousElementSibling.previousElementSibling.previousElementSibling.children[0].value;
+
+    e.style.display = "none";
+    e.previousElementSibling.style.display = "block";
+    e.parentElement.previousElementSibling.previousElementSibling.previousElementSibling.previousElementSibling.children[0].readOnly = true;
+    
+    fetch(`/posts/${__id}/comments?comment_id=${comment_id}`,{
+        method: "put",
+        // post 로 req.body 보낼 시 header 작성하기
+        headers: {'Content-Type': 'application/json'},
+        // body: JSON.stringify({asdf:"sdf"}) // 옵션은 JSON 변환 필수 !
+        body: JSON.stringify({content})
+    })
+    .then(res => res.json())
+    .then(res => {
+        if(res.result === "success"){
+            window.location.href = `/posts/${__id}`;
+        } else if(res.result === "fail"){
+            alert('로그인이 필요한 서비스입니다.');
+            window.location.href = `/posts/${__id}`;
+        } else if(res.result === "notok") {
+            alert('수정이 불가합니다. 사유 : 댓글 작성자 아님');
+            window.location.href = `/posts/${__id}`;
+        }
+        else {
+            alert('Session user can\'t find in UserDB');
+            window.location.href = `/posts/${__id}`;
+        }
+    })
+    .catch(err => {
+        console.log(err);
+        alert('댓글 수정 실패 사유: 알 수 없음');
     });
 
 }

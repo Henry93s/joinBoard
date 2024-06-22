@@ -134,7 +134,7 @@ router.post('/:__id/comments', asyncHandler(async (req, res) => {
     res.status(200).json({result: 'success'}); 
 }));
 
-// 댓글 삭제 라우터
+// 댓글 삭제 라우터 ($pull)
 router.delete('/:__id/comments', asyncHandler(async (req, res) => {
     const __id = req.params.__id;
     const {comment_id} = req.query;
@@ -145,21 +145,70 @@ router.delete('/:__id/comments', asyncHandler(async (req, res) => {
         __id: req.user.__id
     });
     if(!author) { res.json({result:'Session user can\'t find in UserDB'}); return; }
-    console.log(comment_id)
 
-    // $pull 오퍼레이터 : 댓글 삭제 요청
-    await Post.findOneAndUpdate({
-        __id: __id
-    },{
-        $pull: {comments:{
-            author: author,
-            __id: comment_id
-        }},
-    }, {new: true} ); // 적용된 문서 반환할 때 사용
-    // 일반적으로 csr api 는 render, send 를 직접하지 않고, front 로 json 만 넘겨준다.
+    const post = await Post.findOne({
+        __id: __id,
+    });
+    const ifData = post.comments.find(v => {
+        return v.author.toString() === author._id.toString() && v.__id === comment_id;
+    });
 
-    res.status(200).json({result: 'success'}); 
+    if(ifData){
+        // $pull 오퍼레이터 : 댓글 삭제 요청
+        await Post.findOneAndUpdate({
+            __id: __id
+        },{
+            $pull: {comments:{
+                __id: comment_id
+            }},
+        }, {new: true} ); // 적용된 문서 반환할 때 사용
+        // 일반적으로 csr api 는 render, send 를 직접하지 않고, front 로 json 만 넘겨준다.
+
+        res.status(200).json({result: 'success'}); 
+    }
+    else { // 작성자 다름
+        res.status(403).json({result: 'notok'}); 
+    }
 }));
+
+// 댓글 수정 라우터 ($set)
+router.put('/:__id/comments', asyncHandler(async (req, res) => {
+    const __id = req.params.__id;
+    const {content} = req.body;
+    const {comment_id} = req.query;
+
+    if(!req.user){res.json({result: 'fail'}); return;}
+
+    const author = await User.findOne({
+        __id: req.user.__id
+    });
+    if(!author) { res.json({result:'Session user can\'t find in UserDB'}); return; }
+    
+    const post = await Post.findOne({
+        __id: __id,
+    });
+    const ifData = post.comments.find(v => {
+        return v.author.toString() === author._id.toString() && v.__id === comment_id;
+    });
+
+    if(ifData){
+        // $set 오퍼레이터 : 댓글 수정 요청
+        await Post.findOneAndUpdate({
+            __id: __id,
+            "comments.__id": comment_id
+        },{
+            $set: {"comments.$.content": content},
+        }, {new: true} ); // 적용된 문서 반환할 때 사용
+        // 일반적으로 csr api 는 render, send 를 직접하지 않고, front 로 json 만 넘겨준다.
+
+        res.status(200).json({result: 'success'}); 
+    } else { // 작성자 다름
+        res.status(403).json({result: 'notok'}); 
+    }
+
+
+}));
+
 // 글 수정하기, 글 삭제하기 위 라우터 체크
 
 module.exports = router;

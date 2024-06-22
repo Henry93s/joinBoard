@@ -35,11 +35,15 @@
                 <!-- <tr><td>asdfasf</td></tr> -->
                 <template id="comment-template">
                     <tr>
-                        <td class="content"></td>
+                        <td class="content"><input type="text" class="form-control" id="content-data" readonly></td>
                         <td class="author"></td>
                         <td class="createAt"></td>
                         <td class="comment_id" style="display: none;"></td>
-                        <td class="deleteComment"><a onclick="deleteComment()" style="color:red; text-decoration: underline; cursor: pointer;">댓글 삭제</a></td>
+                        <td class="updateComments">
+                            <a class="updateComment" onclick="updateCommentEdit(this)" style="color:blue; text-decoration: underline; cursor: pointer; display: block;">댓글 수정</a>
+                            <a class="updateCommentEdit" onclick="updateComment(this)" style="color:blue; text-decoration: underline; cursor: pointer; display: none;">수정 완료</a>
+                        </td>
+                        <td class="deleteComment"><a onclick="deleteComment(this)" style="color:red; text-decoration: underline; cursor: pointer;">댓글 삭제</a></td>
                     </tr>
                 </template>
             </tfoot>
