@@ -133,6 +133,33 @@ router.post('/:__id/comments', asyncHandler(async (req, res) => {
 
     res.status(200).json({result: 'success'}); 
 }));
+
+// 댓글 삭제 라우터
+router.delete('/:__id/comments', asyncHandler(async (req, res) => {
+    const __id = req.params.__id;
+    const {comment_id} = req.query;
+
+    if(!req.user){res.json({result: 'fail'}); return;}
+
+    const author = await User.findOne({
+        __id: req.user.__id
+    });
+    if(!author) { res.json({result:'Session user can\'t find in UserDB'}); return; }
+    console.log(comment_id)
+
+    // $pull 오퍼레이터 : 댓글 삭제 요청
+    await Post.findOneAndUpdate({
+        __id: __id
+    },{
+        $pull: {comments:{
+            author: author,
+            __id: comment_id
+        }},
+    }, {new: true} ); // 적용된 문서 반환할 때 사용
+    // 일반적으로 csr api 는 render, send 를 직접하지 않고, front 로 json 만 넘겨준다.
+
+    res.status(200).json({result: 'success'}); 
+}));
 // 글 수정하기, 글 삭제하기 위 라우터 체크
 
 module.exports = router;

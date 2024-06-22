@@ -9,6 +9,12 @@ const makeDate = () => {
 // sub-schema 작성 (댓글 테이블)
 const CommentSchema = new Schema({
     content: String,
+    __id: {
+        type: String,
+        default: () => { return nanoid() },
+        require: true,
+        index: true
+    },
     author: {
         type: Schema.Types.ObjectId,
         ref: 'User'

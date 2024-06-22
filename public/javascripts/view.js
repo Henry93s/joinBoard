@@ -6,7 +6,6 @@ const onloadFunc = () => {
     fetch(`/posts/${__id}/getdatas`)
     .then(res => res.json())
     .then(res => {        
-        console.log(res);
         // 글 내용 읽기 처리
         document.querySelector('[name="post-title"').innerText = res.title;
         document.querySelector('[name="post-author"').innerText = res.author.name;
@@ -20,7 +19,8 @@ const onloadFunc = () => {
             node.querySelector('.content').textContent = res.comments[i].content;
             node.querySelector('.author').textContent = res.comments[i].author.name;
             node.querySelector('.createAt').textContent = res.comments[i].createAt;
-            node.querySelector('.deleteComment');
+            node.querySelector('.createAt').textContent = res.comments[i].createAt;
+            node.querySelector('.comment_id').textContent = res.comments[i].__id;
             document.querySelector('#comments').appendChild(node);
         }
     })
@@ -93,4 +93,36 @@ const writeComment = () => {
         console.log(err);
         alert('댓글 등록 실패 사유: 알 수 없음');
     });
+}
+
+const deleteComment = () => {
+    const hrefurl = window.location.href;
+    const lastIndexOf__id = hrefurl.lastIndexOf('/');
+    const __id = hrefurl.substring(lastIndexOf__id+1,hrefurl.length);
+    const comment_id = document.querySelector('.comment_id').innerText;
+    
+    fetch(`/posts/${__id}/comments?comment_id=${comment_id}`,{
+        method: "delete",
+        // post 로 req.body 보낼 시 header 작성하기
+        headers: {'Content-Type': 'application/json'},
+        // body: JSON.stringify({asdf:"sdf"}) // 옵션은 JSON 변환 필수 !
+    })
+    .then(res => res.json())
+    .then(res => {
+        if(res.result === "success"){
+            window.location.href = `/posts/${__id}`;
+        } else if(res.result === "fail"){
+            alert('로그인이 필요한 서비스입니다.');
+            window.location.href = `/posts/${__id}`;
+        } 
+        else {
+            alert('Session user can\'t find in UserDB');
+            window.location.href = `/posts/${__id}`;
+        }
+    })
+    .catch(err => {
+        console.log(err);
+        alert('댓글 등록 실패 사유: 알 수 없음');
+    });
+
 }
