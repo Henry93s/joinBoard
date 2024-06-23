@@ -33,7 +33,7 @@ const onloadFunc = () => {
             }
 
             const postsList = document.querySelector('#posts-list');            
-            for(var i = 0; i < res.total; i++){
+            for(var i = 0; i < res.posts.length; i++){
                 var newRow = postsList.insertRow();
                 var newCell1 = newRow.insertCell(0);
                 var newCell1Link = newCell1.appendChild(document.createElement('a'));
